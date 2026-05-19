@@ -56,16 +56,16 @@ const STORAGE_KEYS = {
 // Default API URL (can be configured by user)
 // ============================================
 
-// TODO: Update this to your Vercel deployment URL after deploying
-// e.g., 'https://your-project.vercel.app' or your custom domain
-const DEFAULT_API_URL = 'https://mirror-app.vercel.app'
+// GitHub raw content URL for question bank updates
+const GITHUB_RAW_URL = 'https://raw.githubusercontent.com/Sean0101010111/mirror-app/main'
 
 // ============================================
 // Local Cache Management
 // ============================================
 
 export function getApiUrl(): string {
-  return localStorage.getItem(STORAGE_KEYS.API_URL) || DEFAULT_API_URL
+  // Legacy function - API URL is now hardcoded to GitHub raw content
+  return localStorage.getItem(STORAGE_KEYS.API_URL) || GITHUB_RAW_URL
 }
 
 export function setApiUrl(url: string): void {
@@ -151,62 +151,75 @@ async function fetchFromApi<T>(endpoint: string): Promise<T> {
 // ============================================
 
 /**
- * Check if there's an update available
+ * Check if there's an update available (by comparing meta versions)
  */
 export async function checkForUpdates(): Promise<UpdateCheckResult> {
   const currentVersion = getLocalVersion()
   const now = new Date().toISOString()
   
   try {
-    const response = await fetchFromApi<{ version: string; lastUpdated: string }>('/api/questions/version')
+    // Check version from GitHub raw content
+    const response = await fetch(`${GITHUB_RAW_URL}/api/data/meta.json`, {
+      signal: AbortSignal.timeout(10000)
+    })
     
-    return {
-      hasUpdate: currentVersion !== response.version,
-      currentVersion,
-      latestVersion: response.version,
-      lastChecked: now,
+    if (response.ok) {
+      const meta = await response.json() as { version: string; lastUpdated: string }
+      return {
+        hasUpdate: currentVersion !== meta.version,
+        currentVersion,
+        latestVersion: meta.version,
+        lastChecked: now,
+      }
     }
   } catch (e) {
     console.error('Failed to check for updates:', e)
-    return {
-      hasUpdate: false,
-      currentVersion,
-      latestVersion: null,
-      lastChecked: now,
-    }
+  }
+  
+  return {
+    hasUpdate: false,
+    currentVersion,
+    latestVersion: null,
+    lastChecked: now,
   }
 }
 
 /**
- * Fetch complete question bank from API
- * Falls back to local cache if API is unavailable
+ * Fetch complete question bank
+ * Priority: GitHub raw (online updates) > local cache > bundled questions
  */
 export async function fetchQuestionBank(): Promise<QuestionBank> {
-  // Try to fetch from API first
+  // 1. Try to fetch from GitHub raw content (supports online updates)
   try {
-    const data = await fetchFromApi<QuestionBank>('/api/questions')
-    saveToCache(data.questions, data.meta)
-    return data
+    const response = await fetch(`${GITHUB_RAW_URL}/api/data/questions.json`, {
+      signal: AbortSignal.timeout(10000)
+    })
+    if (response.ok) {
+      const data = await response.json() as QuestionBank
+      saveToCache(data.questions, data.meta)
+      console.log('Loaded questions from GitHub:', data.questions.length)
+      return data
+    }
   } catch (e) {
-    console.error('Failed to fetch question bank from API, using local:', e)
-    
-    // Fall back to local cache
-    const cached = getCachedQuestionBank()
-    if (cached) {
-      return cached
-    }
-    
-    // Last resort: use bundled local questions
-    console.warn('No cache available, using bundled local questions')
-    return {
-      meta: {
-        version: 'local-v1.0.0',
-        lastUpdated: new Date().toISOString(),
-        totalQuestions: localQuestionBank.length,
-        dimensions: ['价值判断力', '逻辑严谨性', '共情中立性', '知识精确性', '批判性思维', '思维深度', '融会贯通'],
-      },
-      questions: localQuestionBank,
-    }
+    console.log('GitHub fetch failed, trying local cache...')
+  }
+
+  // 2. Fall back to local cache
+  const cached = getCachedQuestionBank()
+  if (cached) {
+    return cached
+  }
+
+  // 3. Last resort: use bundled local questions
+  console.warn('No cache available, using bundled local questions')
+  return {
+    meta: {
+      version: 'local-v1.0.0',
+      lastUpdated: new Date().toISOString(),
+      totalQuestions: localQuestionBank.length,
+      dimensions: ['价值判断力', '逻辑严谨性', '共情中立性', '知识精确性', '批判性思维', '思维深度', '融会贯通'],
+    },
+    questions: localQuestionBank,
   }
 }
 

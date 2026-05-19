@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mirror·镜 v4 Web版 开发任务书</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.6; color: #e2e8f0; background: #0f172a; padding: 2rem; }
+    .container { max-width: 1000px; margin: 0 auto; }
+    h1 { font-size: 1.75rem; color: #f8fafc; margin-bottom: 0.5rem; }
+    h2 { font-size: 1.25rem; color: #60a5fa; margin: 2rem 0 1rem; border-bottom: 2px solid #1e293b; padding-bottom: 0.5rem; }
+    h3 { font-size: 1rem; color: #94a3b8; margin: 1rem 0 0.5rem; }
+    .meta { color: #64748b; font-size: 0.875rem; margin-bottom: 2rem; }
+    .card { background: #1e293b; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
+    .tag { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
+    .tag-pm { background: #1e3a5f; color: #60a5fa; }
+    .tag-design { background: #3b1f3b; color: #f472b6; }
+    .tag-tech { background: #1a3b2e; color: #4ade80; }
+    .tag-priority { background: #3b1a1a; color: #f87171; }
+    .tag-new { background: #1a3b3b; color: #22d3d3; }
+    .section-divider { margin: 3rem 0; border: none; border-top: 1px solid #1e293b; }
+    ul { padding-left: 1.5rem; }
+    li { margin-bottom: 0.5rem; }
+    .comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
+    .comparison > div { padding: 1rem; border-radius: 8px; }
+    .old { background: #2d1a1a; border-left: 4px solid #f87171; }
+    .new { background: #1a2d1a; border-left: 4px solid #4ade80; }
+    .priority-high { color: #f87171; font-weight: 600; }
+    code { background: #0f172a; padding: 0.125rem 0.375rem; border-radius: 4px; font-size: 0.875em; color: #a5f3fc; }
+    .todo-list { counter-reset: todo; list-style: none; padding: 0; }
+    .todo-list li { counter-increment: todo; padding: 0.75rem 1rem 0.75rem 3rem; background: #1e293b; margin-bottom: 0.5rem; border-radius: 8px; position: relative; border-left: 3px solid #334155; }
+    .todo-list li::before { content: counter(todo); position: absolute; left: 1rem; top: 0.75rem; width: 1.5rem; height: 1.5rem; background: #334155; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; color: #94a3b8; }
+    .todo-list li.priority-high::before { background: #3b1a1a; color: #f87171; }
+    .todo-list li.completed::before { background: #1a3b2e; color: #4ade80; content: '✓'; }
+    .todo-list li.in-progress::before { background: #1a3b3b; color: #22d3d3; }
+    .architecture { background: #0f172a; border-radius: 8px; padding: 1rem; font-family: monospace; font-size: 0.875rem; overflow-x: auto; }
+    .architecture .client { color: #60a5fa; }
+    .architecture .server { color: #4ade80; }
+    .architecture .db { color: #f472b6; }
+    .architecture .arrow { color: #64748b; }
+    table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+    th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #334155; }
+    th { color: #94a3b8; font-weight: 600; }
+    .status-done { color: #4ade80; }
+    .status-pending { color: #f87171; }
+    .status-in-progress { color: #22d3d3; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+# Mirror·镜 v4 Web版 开发任务书
+
+<div class="meta">
+版本: v4.0 | 日期: 2026-05-18 | 状态: 草稿 | 架构: Web (React SPA)
+</div>
+
+---
+
+## 一、架构变更说明
+
+<span class="tag tag-new">架构变更</span> 从 Tauri 桌面应用迁移到 Web 单页应用
+
+### 1.1 变更原因
+
+| 原方案 | 问题 | 新方案 | 优势 |
+|--------|------|--------|------|
+| Tauri 桌面应用 | 需要安装 MSVC 工具链，Rust 编译复杂 | React SPA | 纯前端，部署简单 |
+| 完全离线 | 数据无法同步，无法更新题库 | Web + API | 题库动态更新，数据可备份 |
+| SQLite 本地存储 | 数据局限于单设备 | localStorage + 云端API | 多设备同步，便捷备份 |
+
+### 1.2 新架构
+
+<div class="card">
+<div class="architecture">
+<span class="client">┌─────────────────────────────────────────────────────────┐</span>
+<span class="client">│                    Browser (React SPA)                  │</span>
+<span class="client">│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌─────────┐ │</span>
+<span class="client">│  │ QuizPage │  │ Profile  │  │ Weakness │  │ Settings│ │</span>
+<span class="client">│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬────┘ │</span>
+<span class="client">│       └────────────┴────────────┴──────────────┘       │</span>
+<span class="client">│                         │                               │</span>
+<span class="client">│              ┌──────────┴──────────┐                   │</span>
+<span class="client">│              │   State (Zustand)   │                   │</span>
+<span class="client">│              │  + localStorage     │                   │</span>
+<span class="client">│              └──────────┬──────────┘                   │</span>
+<span class="client">└─────────────────────────┼───────────────────────────────┘</span>
+<span class="arrow">                          │ fetch()</span>
+<span class="arrow">                          ▼</span>
+<span class="server">┌─────────────────────────────────────────────────────────┐</span>
+<span class="server">│                   Question Bank API                     │</span>
+<span class="server">│              (题库动态更新服务)                          │</span>
+<span class="server">│  GET /api/questions      - 获取题库                     │</span>
+<span class="server">│  GET /api/questions/version - 获取版本号                │</span>
+<span class="server">│  GET /api/questions/diff?since=v1 - 增量更新            │</span>
+<span class="server">└─────────────────────────────────────────────────────────┘</span>
+</div>
+</div>
+
+### 1.3 技术栈
+
+| 层级 | 技术 | 说明 |
+|------|------|------|
+| 前端框架 | React 19 + TypeScript | 核心框架 |
+| 构建工具 | Vite 7 | 快速构建 |
+| 状态管理 | Zustand + localStorage | 状态持久化 |
+| 路由 | React Router v7 | 页面导航 |
+| 图表 | Recharts | 雷达图可视化 |
+| 样式 | CSS Variables + 原生CSS | 深色主题 |
+| HTTP | 原生 Fetch API | 题库联网 |
+
+---
+
+## 二、产品功能（保留全部功能）
+
+### 2.1 核心功能清单
+
+| 功能 | 状态 | 说明 |
+|------|------|------|
+| 7种题型测评 | ✅ 已完成 | 价值判断、逻辑严谨性、共情中立性、知识精确性、批判性思维、思维深度、融会贯通 |
+| 认知画像生成 | ✅ 已完成 | 雷达图可视化 + 维度得分 |
+| 反直觉洞察 | ✅ 已完成 | 每维度生成意外发现 |
+| 弱点报告 | ✅ 已完成 | 识别认知弱点 + 改进建议 |
+| 重测对比 | ✅ 已完成 | 与历史测评对比 |
+| 深色主题 | ✅ 已完成 | 视觉风格 |
+| 题库动态更新 | <span class="status-in-progress">待开发</span> | 联网获取最新题库 |
+| 设置页 | ✅ 已完成 | API地址配置 |
+
+---
+
+## 三、题库联网同步方案
+
+<span class="tag tag-new">新功能</span> 题库动态更新
+
+### 3.1 设计目标
+
+1. **版本管理**: 追踪本地题库版本，支持增量更新
+2. **容错机制**: API不可用时使用本地缓存
+3. **配置灵活**: 用户可配置题库API地址
+4. **静默更新**: 后台检查更新，不打断用户操作
+
+### 3.2 数据结构
+
+```typescript
+// 题库元信息
+interface QuestionBankMeta {
+  version: string        // 例如 "v1.2.3"
+  lastUpdated: string    // ISO日期
+  totalQuestions: number // 总题数
+  dimensions: string[]   // 覆盖的维度
+}
+
+// 题目结构
+interface Question {
+  id: string
+  type: 'single_choice' | 'multiple_choice' | 'ranking' | 'scenario' | 'paradox' | 'metaphor' | 'blank'
+  dimension: Dimension
+  stem: string           // 题干
+  options: {
+    text: string
+    score: number        // 1-5
+  }[]
+  explanation?: string   // 解析（可选）
+}
+```
+
+### 3.3 API接口设计
+
+| 接口 | 方法 | 说明 | 响应 |
+|------|------|------|------|
+| `/api/questions` | GET | 获取完整题库 | `{ meta, questions[] }` |
+| `/api/questions/version` | GET | 获取版本信息 | `{ version, lastUpdated }` |
+| `/api/questions/diff?since={version}` | GET | 增量更新 | `{ meta, questions[], added[], removed[] }` |
+
+### 3.4 更新策略
+
+```
+┌─────────────┐     ┌──────────────┐     ┌─────────────┐
+│ App启动     │ ──▶ │ 检查版本     │ ──▶ │ 有新版本？  │
+└─────────────┘     └──────────────┘     └──────┬──────┘
+                                                │
+                     ┌──────────────────────────┼──────────────────────────┐
+                     │                          │                          │
+                     ▼                          ▼                          ▼
+              ┌─────────────┐           ┌─────────────┐           ┌─────────────┐
+              │ 显示更新提示 │           │ 静默下载    │           │ 使用本地题库 │
+              │ 用户确认    │           │ 后台更新    │           │ 继续使用    │
+              └─────────────┘           └─────────────┘           └─────────────┘
+```
+
+---
+
+## 四、开发任务清单
+
+### Task 1: 移除Tauri相关文件 <span class="tag tag-new">新</span>
+
+**改动点**:
+- 删除 `src-tauri/` 目录
+- 删除 `src-tauri` 相关配置
+- 更新 `.gitignore` 移除 Rust 相关
+
+**文件**:
+- 删除: `src-tauri/`, `.gitignore` (需更新)
+
+---
+
+### Task 2: 更新 package.json <span class="tag tag-new">新</span>
+
+**改动点**:
+- 移除 Tauri 相关依赖 (`@tauri-apps/api`, `@tauri-apps/plugin-*`)
+- 添加 React Router 依赖
+- 验证所有依赖兼容
+
+**文件**:
+- `package.json`
+
+---
+
+### Task 3: 创建题库同步服务 <span class="tag tag-new">新</span>
+
+**改动点**:
+- 创建 `src/services/questionSync.ts`
+- 实现版本检查、增量更新逻辑
+- 实现本地缓存管理
+- 实现更新提示UI
+
+**文件**:
+- `src/services/questionSync.ts` (新建)
+
+**核心函数**:
+```typescript
+// 检查题库更新
+async function checkForUpdates(): Promise<UpdateCheckResult>
+
+// 获取完整题库（首次或全量更新）
+async function fetchQuestionBank(): Promise<QuestionBank>
+
+// 增量更新
+async function fetchIncrementalUpdate(sinceVersion: string): Promise<DiffResult>
+
+// 获取当前本地版本
+function getLocalVersion(): string | null
+
+// 保存到本地缓存
+function saveToCache(questions: Question[], meta: QuestionBankMeta): void
+```
+
+---
+
+### Task 4: 更新设置页 <span class="tag tag-new">新</span>
+
+**改动点**:
+- 添加题库API地址配置输入框
+- 添加手动检查更新按钮
+- 添加当前题库版本显示
+- 添加上次更新时间显示
+
+**文件**:
+- `src/pages/Settings.tsx`
+- `src/pages/Settings.css`
+
+---
+
+### Task 5: 更新 quizStore 支持远程题库 <span class="tag tag-new">新</span>
+
+**改动点**:
+- 修改 `quizStore.ts` 支持从远程加载题目
+- 添加题库加载状态管理
+- 添加题库更新状态管理
+
+**文件**:
+- `src/stores/quizStore.ts`
+
+---
+
+### Task 6: 更新开发任务书文档 <span class="tag tag-new">新</span>
+
+**改动点**:
+- 更新本文档，移除Tauri相关内容
+- 添加Web架构说明
+- 添加题库同步方案
+
+**文件**:
+- `08_开发任务书_Mirror_v4.html` (重命名)
+
+---
+
+## 五、执行顺序
+
+```
+1. Task 6: 更新开发任务书文档（本文档）
+2. Task 1: 移除Tauri相关文件
+3. Task 2: 更新 package.json
+4. Task 3: 创建题库同步服务
+5. Task 4: 更新设置页
+6. Task 5: 更新 quizStore
+7. TypeScript 编译检查
+8. 构建验证
+```
+
+---
+
+## 六、验收标准
+
+| 任务 | 验收条件 |
+|------|----------|
+| Task 1 | `src-tauri/` 目录已删除，`.gitignore` 已更新 |
+| Task 2 | `npm install` 成功，无 Tauri 依赖 |
+| Task 3 | 题库同步服务可正常工作，可配置 API 地址 |
+| Task 4 | 设置页显示当前版本，有手动检查更新按钮 |
+| Task 5 | quizStore 可从远程加载题目 |
+| TypeScript | `npm run build` 通过，无 error |
+| 功能 | 所有原有功能保持正常 |
+
+---
+
+## 七、后续规划
+
+### Phase 2: AI分析联网（可选）
+
+当用户选择开启后：
+- 画像分析结果发送到 AI API
+- 返回深度分析报告
+- 可在设置页开关
+
+### Phase 3: 数据备份与同步（可选）
+
+- 用户登录后自动备份数据
+- 多设备同步测评历史
+- 跨设备继续测评
+
+---
+
+<div style="text-align: center; margin-top: 3rem; color: #475569; font-size: 0.875rem;">
+<p>Mirror·镜 v4 Web版 | 从 Tauri 迁移到 React SPA</p>
+<p>2026-05-18</p>
+</div>
+
+</div>
+</body>
+</html>
