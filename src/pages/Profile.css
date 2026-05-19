@@ -1,4 +1,4 @@
-/* Profile - Dark Theme v3 */
+/* Profile - Warm Personal Theme */
 
 .profile {
   max-width: 800px;
@@ -13,6 +13,7 @@
   font-size: 1.5rem;
   color: var(--text-primary);
   margin-bottom: 0.25rem;
+  font-family: var(--font-display);
 }
 
 .profile-header .subtitle {
@@ -23,7 +24,8 @@
 /* Hero Radar */
 .hero-radar {
   background: var(--bg-card);
-  border-radius: 16px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
   padding: 1.5rem;
   margin-bottom: 1.5rem;
   text-align: center;
@@ -39,7 +41,8 @@
   align-items: center;
   padding: 1rem 2rem;
   background: var(--bg-dark);
-  border-radius: 12px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
 }
 
 .badge-label {
@@ -53,24 +56,27 @@
 .badge-value {
   font-size: 2.5rem;
   font-weight: 700;
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  background: linear-gradient(135deg, var(--primary), var(--primary-hover));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   line-height: 1;
+  font-family: var(--font-display);
 }
 
 /* Summary Section */
 .summary-section {
   padding: 1.25rem;
   background: var(--bg-card);
-  border-radius: 12px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
   margin-bottom: 1.5rem;
 }
 
 .summary-section p {
   color: var(--text-secondary);
-  line-height: 1.6;
+  line-height: 1.7;
+  font-family: var(--font-serif);
 }
 
 /* Dimensions Section */
@@ -81,6 +87,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  font-family: var(--font-display);
 }
 
 .dimensions-section .hint {
@@ -98,13 +105,15 @@
 /* Dimension Card */
 .dimension-card {
   background: var(--bg-card);
-  border-radius: 12px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
   overflow: hidden;
-  transition: box-shadow 0.2s ease;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .dimension-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  border-color: var(--border-light);
 }
 
 .dimension-header {
@@ -135,7 +144,7 @@
   font-size: 0.875rem;
   font-weight: 600;
   padding: 0.25rem 0.625rem;
-  border-radius: 6px;
+  border-radius: 8px;
 }
 
 .score-badge.high {
@@ -144,12 +153,12 @@
 }
 
 .score-badge.medium {
-  background: rgba(79, 70, 229, 0.15);
-  color: #a5b4fc;
+  background: var(--warning-bg);
+  color: var(--score-medium);
 }
 
 .score-badge.low {
-  background: rgba(100, 116, 139, 0.15);
+  background: rgba(122, 118, 112, 0.15);
   color: var(--text-muted);
 }
 
@@ -172,7 +181,7 @@
 /* Expanded Content */
 .dimension-content {
   padding: 0 1.25rem 1.25rem;
-  animation: slideDown 0.2s ease-out;
+  animation: slideDown 0.25s ease-out;
 }
 
 @keyframes slideDown {
@@ -197,32 +206,32 @@
 .score-bar-large .score-fill {
   height: 100%;
   border-radius: 3px;
-  transition: width 0.3s ease;
+  transition: width 0.4s ease;
 }
 
 .score-bar-large .score-fill.high {
-  background: linear-gradient(90deg, var(--score-high), #4ade80);
+  background: linear-gradient(90deg, var(--success), #a8c990);
 }
 
 .score-bar-large .score-fill.medium {
-  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  background: linear-gradient(90deg, var(--secondary), var(--primary));
 }
 
 .score-bar-large .score-fill.low {
-  background: var(--text-muted);
+  background: var(--score-low);
 }
 
 .dimension-desc {
   font-size: 0.875rem;
   color: var(--text-secondary);
-  line-height: 1.6;
+  line-height: 1.65;
   margin-bottom: 1rem;
 }
 
 /* Insight Box */
 .insight-box {
-  background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(6, 182, 212, 0.1));
-  border-radius: 8px;
+  background: linear-gradient(135deg, var(--primary-muted), var(--warning-bg));
+  border-radius: 12px;
   padding: 1rem;
   border-left: 3px solid var(--primary);
 }
@@ -233,19 +242,21 @@
   font-weight: 600;
   display: block;
   margin-bottom: 0.375rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .insight-text {
   font-size: 0.875rem;
   color: var(--text-primary);
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
 /* Confidence Tags */
 .confidence-tag {
   font-size: 0.75rem;
   padding: 0.25rem 0.5rem;
-  border-radius: 4px;
+  border-radius: 6px;
 }
 
 .confidence-tag.high {
@@ -260,5 +271,5 @@
 
 .confidence-tag.low {
   color: var(--text-muted);
-  background: rgba(100, 116, 139, 0.15);
+  background: rgba(122, 118, 112, 0.15);
 }
