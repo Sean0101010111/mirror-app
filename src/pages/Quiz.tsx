@@ -39,9 +39,40 @@ export default function Quiz() {
       // Try to load questions from remote API (with fallback to local)
       const questionBank = await getQuestions()
       
-      // Randomly select questionCount questions from the available pool
-      const shuffled = [...questionBank.questions].sort(() => Math.random() - 0.5)
-      const selectedQuestions = shuffled.slice(0, Math.min(questionCount, shuffled.length))
+      // Stratified sampling: ensure at least 2 questions per dimension
+      const MIN_PER_DIMENSION = 2
+      const dimensionGroups: Record<string, typeof questionBank.questions> = {}
+      
+      // Group questions by dimension
+      questionBank.questions.forEach(q => {
+        if (!dimensionGroups[q.dimension]) {
+          dimensionGroups[q.dimension] = []
+        }
+        dimensionGroups[q.dimension].push(q)
+      })
+      
+      // Select minimum questions from each dimension first
+      const selectedQuestions: typeof questionBank.questions = []
+      const dimensions = Object.keys(dimensionGroups)
+      
+      dimensions.forEach(dim => {
+        const dimQuestions = dimensionGroups[dim].sort(() => Math.random() - 0.5)
+        const count = Math.min(MIN_PER_DIMENSION, dimQuestions.length)
+        selectedQuestions.push(...dimQuestions.slice(0, count))
+      })
+      
+      // Fill remaining slots with random questions (excluding already selected)
+      const remainingSlots = Math.max(0, questionCount - selectedQuestions.length)
+      if (remainingSlots > 0) {
+        const selectedIds = new Set(selectedQuestions.map(q => q.id))
+        const remainingQuestions = questionBank.questions
+          .filter(q => !selectedIds.has(q.id))
+          .sort(() => Math.random() - 0.5)
+        selectedQuestions.push(...remainingQuestions.slice(0, remainingSlots))
+      }
+      
+      // Shuffle final selection
+      selectedQuestions.sort(() => Math.random() - 0.5)
       
       setQuestions(selectedQuestions)
       setQuizStarted(true)

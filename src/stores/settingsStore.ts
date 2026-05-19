@@ -16,7 +16,7 @@ export const useSettingsStore = create<SettingsState>()(
   persist(
     (set) => ({
       theme: 'light',
-      questionCount: 10,
+      questionCount: 21,  // 3 questions × 7 dimensions for balanced coverage
       showFeedback: true,
       
       setTheme: (theme) => set({ theme }),

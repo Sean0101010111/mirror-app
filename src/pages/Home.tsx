@@ -82,7 +82,7 @@ export default function Home() {
             <div className="empty-hero">
               <div className="empty-icon">🔍</div>
               <h2>你的认知盲区在哪里？</h2>
-              <p>14道题，5分钟，发现影响你决策的思维盲区</p>
+              <p>21道题，发现影响你决策的思维盲区</p>
               <button className="btn btn-sample" onClick={handleToggleSample}>
                 查看示例画像
               </button>
